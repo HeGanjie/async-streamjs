@@ -5,6 +5,7 @@
   "main": "lib/async-stream.js",
   "scripts": {
     "build": "babel src -d lib --ignore test.js",
+    "prepublish": "npm test && npm run build",
     "test": "jest"
   },
   "repository": {
