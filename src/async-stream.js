@@ -14,6 +14,7 @@ interface IteratorResult {
 }*/
 
 const EOS = Symbol.for('endOfAsyncStream')
+const SKIP = Symbol.for('skipThisElement')
 
 export default class AsyncStream {
   headPromiseOrFn = null
@@ -24,6 +25,7 @@ export default class AsyncStream {
     this.restFn = restFn || (() => EMPTY_STREAM)
 
     this[Symbol.asyncIterator] = this.asyncIterator
+    this[Symbol.iterator] = this.asyncIterator
   }
 
   asyncIterator = () => {
@@ -125,24 +127,40 @@ export default class AsyncStream {
   }
 
   flatMap(asyncMapper) {
-    let headMapped = async () => {
-      let v = await asyncMapper(await this.first())
+    let adaptToStream = async val => {
+      let v = await asyncMapper(val)
       if (v && (typeof v[Symbol.iterator] === 'function' || typeof v[Symbol.asyncIterator] === 'function')) {
         return AsyncStream.fromIterable(v)
       }
       return AsyncStream.fromIterable([v])
     }
     
-    let headCache
+    let headStream, headStreamHead, restFlatStream
     let headFn = async () => {
-      headCache = headMapped()
-      let head = await headCache
-      return await head.first()
+      let val = await this.first()
+      if (val === EOS) {
+        return EOS
+      }
+      headStream = await adaptToStream(val)
+      headStreamHead = await headStream.first()
+
+      if (headStreamHead === EOS) {
+        restFlatStream = this.restLazy().flatMap(asyncMapper)
+        return restFlatStream.first()
+      } else {
+        return headStreamHead
+      }
     }
 
     return new AsyncStream(headFn, async () => {
-      let head = await headCache
-      return head.restLazy().concat(this.restLazy().flatMap(asyncMapper))
+      let val = await this.first()
+      if (val === EOS) {
+        return EMPTY_STREAM
+      }
+      if (headStreamHead === EOS) {
+        return restFlatStream.drop(1)
+      }
+      return headStream.restLazy().concat(this.restLazy().flatMap(asyncMapper))
     })
   }
 

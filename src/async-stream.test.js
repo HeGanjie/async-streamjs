@@ -1,15 +1,27 @@
 import AsyncStream from './async-stream'
 import _ from 'lodash'
 
-
-/*(async function f() {
-  for await (const x of AsyncStream.range().flatMap(query).drop(5).take(7)) {
-    console.log(x);
-  }
-})()*/
-
-
 // AsyncStream.range().map(query).flatMap(x => x).forEach(v => console.log(v))
+
+test.skip('flatMap san', async () => {
+  const totalCount = 35
+  async function fakeQueryDB(batchIdx) {
+    const batchSize = 10
+    let offset = batchIdx * batchSize
+    return Array.from({length: batchSize}, (v, i) => i + offset).filter(v => v < totalCount)
+  }
+
+  function delayPromised(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms)
+    })
+  }
+
+  for await (const x of AsyncStream.range().take(10).flatMap(fakeQueryDB)) {
+    console.log(x);
+    await delayPromised(25)
+  }
+});
 
 test('range', async () => {
   let arrFromStream = await AsyncStream.range(0, 10).toArray()
@@ -63,7 +75,7 @@ test('flatMap', async () => {
     let offset = batchIdx * batchSize
     return Array.from({length: batchSize}, (v, i) => i + offset).filter(v => v < totalCount)
   }
-  let arrFromStream = await AsyncStream.range().flatMap(fakeQueryDB).toArray()
+  let arrFromStream = await AsyncStream.range().take(10).flatMap(fakeQueryDB).toArray()
   expect(arrFromStream).toEqual(_.range(0, totalCount))
 });
 
@@ -75,9 +87,12 @@ test('lazy', async () => {
   async function fakeQueryDB(pageIdx) {
     seq.push(`query page ${pageIdx}`)
     let offset = pageIdx * pageSize
-    return Array.from({length: pageSize}, (v, i) => i + offset).filter(v => v < totalCount)
+    return Array.from({length: pageSize}, (v, i) => i + offset)
+      .filter(v => v < totalCount)
   }
-  await AsyncStream.range().map(fakeQueryDB)
+  await AsyncStream.range()
+    .map(fakeQueryDB)
+    .takeWhile(arr => 0 < arr.length)
     .flatMap(_.identity)
     .forEach(v => seq.push(`value ${v}`))
 

@@ -15,10 +15,13 @@ const pageSize = 5
 async function fakeQueryDB(pageIdx) {
     console.log(`query page ${pageIdx}`)
     let offset = pageIdx * pageSize
-    return Array.from({length: pageSize}, (v, i) => i + offset).filter(v => v < totalCount)
+    return Array.from({length: pageSize}, (v, i) => i + offset)
+        .filter(v => v < totalCount)
 }
 
-AsyncStream.range().map(fakeQueryDB)
+AsyncStream.range()
+    .map(fakeQueryDB)
+    .takeWhile(arr => 0 < arr.length)
     .flatMap(x => x)
     .forEach(v => console.log(`value ${v}`))
 ```
