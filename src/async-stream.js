@@ -103,9 +103,9 @@ export default class AsyncStream {
     return this.restLazy().drop(n - 1)
   }
 
-/*filter(asyncPredicate) {
-    // TODO
-  }*/
+  filter(asyncPredicate) {
+    return this.flatMap(async val => await asyncPredicate(val) ? val : EMPTY_STREAM)
+  }
 
   map(asyncMapper) {
     let headFn = () => this.first().then(async v => v === EOS ? EOS : await asyncMapper(v))

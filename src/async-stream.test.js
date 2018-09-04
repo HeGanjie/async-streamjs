@@ -41,6 +41,11 @@ test('map', async () => {
   expect(arrFromStream).toEqual(_.range(0, 5).map(v => v + ''))
 });
 
+test('filter', async () => {
+  let arrFromStream = await AsyncStream.range().filter(v => v % 2 === 0).take(5).toArray()
+  expect(arrFromStream).toEqual([0, 2, 4, 6, 8])
+});
+
 test('reduce', async () => {
   let val = await AsyncStream.range().take(10).reduce((acc, curr) => acc + curr)
   expect(val).toEqual(_.sum(_.range(0, 10)))
