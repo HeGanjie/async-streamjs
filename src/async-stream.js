@@ -106,7 +106,24 @@ export default class AsyncStream {
   }
 
   filter(asyncPredicate) {
-    return this.flatMap(async val => await asyncPredicate(val) ? val : EMPTY_STREAM)
+    let headPass = null, rest
+    let headFn = async () => {
+      let val = await this.first()
+      headPass = !!(await asyncPredicate(val))
+      if (headPass) {
+        return val
+      }
+      rest = this.restLazy().filter(asyncPredicate)
+      return rest.first()
+    }
+    return new AsyncStream(headFn, async () => {
+      if (headPass === null) {
+        await headFn()
+      }
+      return headPass
+        ? this.drop(1).filter(asyncPredicate)
+        : rest.drop(1).filter(asyncPredicate)
+    })
   }
 
   map(asyncMapper) {
