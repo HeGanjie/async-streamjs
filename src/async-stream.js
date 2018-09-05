@@ -14,7 +14,6 @@ interface IteratorResult {
 }*/
 
 const EOS = Symbol.for('endOfAsyncStream')
-const SKIP = Symbol.for('skipThisElement')
 
 export default class AsyncStream {
   headPromiseOrFn = null
@@ -66,9 +65,6 @@ export default class AsyncStream {
       return await cache.first()
     }
     return new AsyncStream(headFn, async () => {
-      if (!cache) {
-        await headFn()
-      }
       return await cache.rest()
     })
   }
@@ -106,10 +102,10 @@ export default class AsyncStream {
   }
 
   filter(asyncPredicate) {
-    let headPass = null, rest
+    let headPass, rest
     let headFn = async () => {
       let val = await this.first()
-      headPass = !!(await asyncPredicate(val))
+      headPass = await asyncPredicate(val)
       if (headPass) {
         return val
       }
@@ -117,9 +113,6 @@ export default class AsyncStream {
       return rest.first()
     }
     return new AsyncStream(headFn, async () => {
-      if (headPass === null) {
-        await headFn()
-      }
       return headPass
         ? this.drop(1).filter(asyncPredicate)
         : rest.drop(1).filter(asyncPredicate)
@@ -170,10 +163,6 @@ export default class AsyncStream {
     }
 
     return new AsyncStream(headFn, async () => {
-      let val = await this.first()
-      if (val === EOS) {
-        return EMPTY_STREAM
-      }
       if (headStreamHead === EOS) {
         return restFlatStream.drop(1)
       }
@@ -185,10 +174,6 @@ export default class AsyncStream {
     const head = iterator.next()
     let hp = Promise.resolve(head).then(({value, done}) => done ? EOS : value)
     return new AsyncStream(hp, async () => {
-      let val = await hp
-      if (EOS === val) {
-        return EMPTY_STREAM
-      }
       return AsyncStream.fromIterator(iterator)
     })
   }
