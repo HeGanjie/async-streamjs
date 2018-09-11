@@ -1,10 +1,8 @@
 # async-streamjs
-
 async version of streamjs(https://github.com/winterbe/streamjs)
 
 ### Install
  `npm i async-streamjs`
-
 
 ### Demo
 ```js
@@ -25,7 +23,6 @@ AsyncStream.range()
     .flatMap(x => x)
     .forEach(v => console.log(`value ${v}`))
 ```
-
 run result:
 ```
 query page 0
@@ -46,5 +43,28 @@ value 11
 query page 3
 ```
 
+### API
+ * `static range(start = 0, end = null)`
+ * `static fromIterable(iterable)`
+ * `async first()`
+ * `async rest()`
+ * `async isEmpty()`
+ * `async forEach(asyncCallback)`
+ * `async toArray()`
+ * `async reduce(asyncReducer, init = undefined)`
+ * `restLazy()`
+ * `take(n)`
+ * `drop(n)`
+ * `takeWhile(asyncPredicate)`
+ * `filter(asyncPredicate)`
+ * `map(asyncMapper)`
+ * `concat(anotherAsyncStream)`
+ * `flatMap(asyncMapper)`
+
+asyncCallback: `val => void`
+asyncPredicate: `val => boolean`
+asyncMapper: `val => any`
+
 ### LICENSE
  MIT
+
