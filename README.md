@@ -62,7 +62,9 @@ query page 3
  * `flatMap(asyncMapper)`
 
 asyncCallback: `val => void`
+
 asyncPredicate: `val => boolean`
+
 asyncMapper: `val => any`
 
 ### LICENSE
