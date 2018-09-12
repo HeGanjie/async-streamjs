@@ -43,6 +43,11 @@ test('drop', async () => {
   expect(arrFromStream).toEqual(_.range(5, 10))
 });
 
+test('dropWhile', async () => {
+  let arrFromStream = await AsyncStream.range().dropWhile(v => v < 5).take(5).toArray()
+  expect(arrFromStream).toEqual(_.range(5, 10))
+});
+
 test('concat', async () => {
   let arrFromStream = await AsyncStream.range().drop(5).take(5).concat(AsyncStream.range().take(5)).toArray()
   expect(arrFromStream).toEqual([..._.range(5, 10), ..._.range(0, 5)])
@@ -56,6 +61,11 @@ test('map', async () => {
 test('filter', async () => {
   let arrFromStream = await AsyncStream.range().filter(v => v % 2 === 0).take(5).toArray()
   expect(arrFromStream).toEqual([0, 2, 4, 6, 8])
+});
+
+test('find', async () => {
+  let arrFromStream = await AsyncStream.range(1).find(v => v % 5 === 0)
+  expect(arrFromStream).toEqual(5)
 });
 
 test('reduce', async () => {

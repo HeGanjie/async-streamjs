@@ -101,6 +101,29 @@ export default class AsyncStream {
     return this.restLazy().drop(n - 1)
   }
 
+  dropWhile(asyncPredicate) {
+    let streamCache
+    let headFn = async () => {
+      let val = await this.first()
+      if (val === EOS) {
+        return EOS
+      }
+      if (await asyncPredicate(val)) {
+        streamCache = this.drop(1).dropWhile(asyncPredicate)
+        return await streamCache.first()
+      }
+
+      return val
+    }
+
+    return new AsyncStream(headFn, async () => {
+      if (streamCache) {
+        return streamCache.drop(1)
+      }
+      return this.restLazy().dropWhile(asyncPredicate)
+    })
+  }
+
   filter(asyncPredicate) {
     let headPass, rest
     let headFn = async () => {
@@ -203,6 +226,10 @@ export default class AsyncStream {
       })
       return init
     }
+  }
+
+  async find(asyncPredicate) {
+    return await this.dropWhile(async v => !await asyncPredicate(v)).first()
   }
 
   async forEach(asyncCallback) {

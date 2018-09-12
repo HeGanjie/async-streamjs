@@ -44,28 +44,31 @@ query page 3
 ```
 
 ### API
- * `static range(start = 0, end = null)`
- * `static fromIterable(iterable)`
- * `async first()`
- * `async rest()`
- * `async isEmpty()`
- * `async forEach(asyncCallback)`
- * `async toArray()`
- * `async reduce(asyncReducer, init = undefined)`
- * `restLazy()`
- * `take(n)`
- * `drop(n)`
- * `takeWhile(asyncPredicate)`
- * `filter(asyncPredicate)`
- * `map(asyncMapper)`
- * `concat(anotherAsyncStream)`
- * `flatMap(asyncMapper)`
+ * `static range(start = 0, end = null): AsyncStream`
+ * `static fromIterable(iterable): AsyncStream`
+ * `async first(): any`
+ * `async rest(): AsyncStream`
+ * `async isEmpty(): bool`
+ * `async forEach(asyncCallback): void`
+ * `async toArray(): Array`
+ * `async reduce(asyncReducer, init = undefined): any`
+ * `restLazy(): AsyncStream`
+ * `take(n): AsyncStream`
+ * `drop(n): AsyncStream`
+ * `takeWhile(asyncPredicate): AsyncStream`
+ * `dropWhile(asyncPredicate): AsyncStream`
+ * `filter(asyncPredicate): AsyncStream`
+ * `map(asyncMapper): AsyncStream`
+ * `concat(anotherAsyncStream): AsyncStream`
+ * `flatMap(asyncMapper): AsyncStream`
 
 asyncCallback: `val => void`
 
 asyncPredicate: `val => boolean`
 
 asyncMapper: `val => any`
+
+asyncReducer: `(accumulate, val) => nextAccumulate`
 
 ### LICENSE
  MIT
