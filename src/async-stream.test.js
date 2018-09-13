@@ -68,6 +68,11 @@ test('find', async () => {
   expect(arrFromStream).toEqual(5)
 });
 
+test('find not found', async () => {
+  let arrFromStream = await AsyncStream.range().take(5).find(v => v === 5)
+  expect(arrFromStream).toEqual(undefined)
+});
+
 test('reduce', async () => {
   let val = await AsyncStream.range().take(10).reduce((acc, curr) => acc + curr)
   expect(val).toEqual(_.sum(_.range(0, 10)))
