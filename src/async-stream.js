@@ -229,7 +229,8 @@ export default class AsyncStream {
   }
 
   async find(asyncPredicate) {
-    return await this.dropWhile(async v => !await asyncPredicate(v)).first()
+    let val = await this.dropWhile(async v => !await asyncPredicate(v)).first()
+    return val === EOS ? undefined : val
   }
 
   async forEach(asyncCallback) {
