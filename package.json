@@ -1,6 +1,6 @@
 {
   "name": "async-streamjs",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "async version of streamjs(https://github.com/winterbe/streamjs)",
   "main": "lib/async-stream.js",
   "scripts": {
@@ -17,7 +17,8 @@
     "async",
     "streamjs",
     "lazy",
-    "stream"
+    "stream",
+    "iterable"
   ],
   "author": "Bruce He",
   "license": "MIT",

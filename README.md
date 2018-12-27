@@ -70,7 +70,7 @@ asyncMapper: `async val => any`
 
 asyncReducer: `async (accumulate, val) => nextAccumulate`
 
-importing: `import AsyncStream, {EMPTY_STREAM} from 'async-stream'`
+empty stream constant: `import {EMPTY_STREAM} from 'async-stream'`
 
 ### LICENSE
  MIT
