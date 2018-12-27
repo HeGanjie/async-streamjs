@@ -62,13 +62,15 @@ query page 3
  * `concat(anotherAsyncStream): AsyncStream`
  * `flatMap(asyncMapper): AsyncStream`
 
-asyncCallback: `val => void`
+asyncCallback: `async val => void`
 
-asyncPredicate: `val => boolean`
+asyncPredicate: `async val => boolean`
 
-asyncMapper: `val => any`
+asyncMapper: `async val => any`
 
-asyncReducer: `(accumulate, val) => nextAccumulate`
+asyncReducer: `async (accumulate, val) => nextAccumulate`
+
+importing: `import AsyncStream, {EMPTY_STREAM} from 'async-stream'`
 
 ### LICENSE
  MIT

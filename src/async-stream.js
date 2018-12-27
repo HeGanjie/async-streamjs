@@ -32,7 +32,7 @@ export default class AsyncStream {
     return {
       next: async () => {
         s = await s.rest()
-        const value = await s.first()
+        const value = await s._first()
         return {
           value: value === EOS ? undefined : value,
           done: value === EOS
@@ -41,17 +41,20 @@ export default class AsyncStream {
     }
   }
 
-  async first() {
+  async _first() {
     if ('function' === typeof this.headPromiseOrFn) {
-      let v = await this.headPromiseOrFn()
-      this.headPromiseOrFn = v
-      return v
+      this.headPromiseOrFn = await this.headPromiseOrFn()
     }
     return await this.headPromiseOrFn
   }
 
+  async first() {
+    let v = await this._first()
+    return EOS === v ? undefined : v
+  }
+
   async rest() {
-    let head = await this.first()
+    let head = await this._first()
     if (head === EOS) {
       return this
     }
@@ -62,7 +65,7 @@ export default class AsyncStream {
     let cache
     const headFn = async () => {
       cache = await this.rest()
-      return await cache.first()
+      return await cache._first()
     }
     return new AsyncStream(headFn, async () => {
       return await cache.rest()
@@ -70,21 +73,21 @@ export default class AsyncStream {
   }
 
   async isEmpty() {
-    return EOS === await this.first()
+    return EOS === await this._first()
   }
 
   take(n) {
     if (n <= 0) {
       return EMPTY_STREAM
     }
-    return new AsyncStream(() => this.first(), async () => {
+    return new AsyncStream(() => this._first(), async () => {
       let r = await this.rest()
       return r.take(n - 1)
     })
   }
 
   takeWhile(asyncPredicate) {
-    let headFn = () => this.first().then(async v => v === EOS || !await asyncPredicate(v) ? EOS : v)
+    let headFn = () => this._first().then(async v => v === EOS || !await asyncPredicate(v) ? EOS : v)
     return new AsyncStream(headFn, async () => {
       let r = await this.rest()
       return r.takeWhile(asyncPredicate)
@@ -104,13 +107,13 @@ export default class AsyncStream {
   dropWhile(asyncPredicate) {
     let streamCache
     let headFn = async () => {
-      let val = await this.first()
+      let val = await this._first()
       if (val === EOS) {
         return EOS
       }
       if (await asyncPredicate(val)) {
         streamCache = this.drop(1).dropWhile(asyncPredicate)
-        return await streamCache.first()
+        return await streamCache._first()
       }
 
       return val
@@ -127,13 +130,13 @@ export default class AsyncStream {
   filter(asyncPredicate) {
     let headPass, rest
     let headFn = async () => {
-      let val = await this.first()
+      let val = await this._first()
       headPass = await asyncPredicate(val)
       if (headPass) {
         return val
       }
       rest = this.restLazy().filter(asyncPredicate)
-      return rest.first()
+      return rest._first()
     }
     return new AsyncStream(headFn, async () => {
       return headPass
@@ -143,7 +146,7 @@ export default class AsyncStream {
   }
 
   map(asyncMapper) {
-    let headFn = () => this.first().then(async v => v === EOS ? EOS : await asyncMapper(v))
+    let headFn = () => this._first().then(async v => v === EOS ? EOS : await asyncMapper(v))
     return new AsyncStream(headFn, async () => {
       let r = await this.rest()
       return r.map(asyncMapper)
@@ -151,8 +154,8 @@ export default class AsyncStream {
   }
 
   concat(s2) {
-    return new AsyncStream(() => this.first().then(v => v === EOS ? s2.first() : v), async () => {
-      if (EOS === await this.first()) {
+    return new AsyncStream(() => this._first().then(v => v === EOS ? s2._first() : v), async () => {
+      if (EOS === await this._first()) {
         return await s2.rest()
       }
       return this.drop(1).concat(s2)
@@ -170,16 +173,16 @@ export default class AsyncStream {
     
     let headStream, headStreamHead, restFlatStream
     let headFn = async () => {
-      let val = await this.first()
+      let val = await this._first()
       if (val === EOS) {
         return EOS
       }
       headStream = await adaptToStream(val)
-      headStreamHead = await headStream.first()
+      headStreamHead = await headStream._first()
 
       if (headStreamHead === EOS) {
         restFlatStream = this.restLazy().flatMap(asyncMapper)
-        return restFlatStream.first()
+        return restFlatStream._first()
       } else {
         return headStreamHead
       }
@@ -215,7 +218,7 @@ export default class AsyncStream {
 
   async reduce(asyncReducer, init = undefined) {
     if (init === undefined) {
-      let res = await this.first()
+      let res = await this._first()
       await (await this.rest()).forEach(async v => {
         res = await asyncReducer(res, v)
       })
@@ -229,17 +232,16 @@ export default class AsyncStream {
   }
 
   async find(asyncPredicate) {
-    let val = await this.dropWhile(async v => !await asyncPredicate(v)).first()
-    return val === EOS ? undefined : val
+    return await this.dropWhile(async v => !await asyncPredicate(v)).first()
   }
 
   async forEach(asyncCallback) {
     let s = this
-    let head = await s.first()
+    let head = await s._first()
     while (head !== EOS) {
       await asyncCallback(head)
       s = await s.rest()
-      head = await s.first()
+      head = await s._first()
     }
   }
 

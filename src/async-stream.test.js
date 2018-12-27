@@ -1,4 +1,4 @@
-import AsyncStream from './async-stream'
+import AsyncStream, {EMPTY_STREAM} from './async-stream'
 import _ from 'lodash'
 
 // AsyncStream.range().map(query).flatMap(x => x).forEach(v => console.log(v))
@@ -129,4 +129,23 @@ test('lazy', async () => {
     "value 11",
     "query page 3"
   ])
+});
+
+test('first of empty stream', async () => {
+  let firstOfEmpty = await AsyncStream.range().take(0).first()
+  expect(firstOfEmpty).toEqual(undefined)
+
+  expect(await EMPTY_STREAM.first()).toEqual(undefined)
+});
+
+test('tail of empty stream', async () => {
+  let tailOfEmpty = await AsyncStream.range().take(0).rest()
+  expect(tailOfEmpty).toBe(EMPTY_STREAM)
+
+  expect(await EMPTY_STREAM.rest()).toBe(EMPTY_STREAM)
+});
+
+test('empty stream equality', async () => {
+  let isEqual = _.isEqual(EMPTY_STREAM, await AsyncStream.range().take(1).rest())
+  expect(isEqual).toBe(true)
 });

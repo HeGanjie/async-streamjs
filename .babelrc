@@ -7,5 +7,17 @@
       "regenerator": true,
       "moduleName": "babel-runtime"
     }]
-  ]
+  ],
+  "env": {
+    "test": {
+      "presets": [
+        ["env", {
+          "targets": {
+            "browsers": ["chrome >= 65"],
+            "node": "current"
+          }
+        }]
+      ]
+    }
+  }
 }
