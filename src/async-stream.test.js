@@ -131,6 +131,14 @@ test('lazy', async () => {
   ])
 });
 
+test('isEmpty', async () => {
+  let emptyStream = AsyncStream.range().take(1).restLazy()
+  expect(await emptyStream.isEmpty()).toBe(true)
+
+  let emptyStream1 = await AsyncStream.range().take(1).rest()
+  expect(await emptyStream1.isEmpty()).toBe(true)
+});
+
 test('first of empty stream', async () => {
   let firstOfEmpty = await AsyncStream.range().take(0).first()
   expect(firstOfEmpty).toEqual(undefined)
