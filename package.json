@@ -1,10 +1,10 @@
 {
   "name": "async-streamjs",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "async version of streamjs(https://github.com/winterbe/streamjs)",
   "main": "lib/async-stream.js",
   "scripts": {
-    "build": "babel src -d lib --ignore test.js --minified --no-comments",
+    "build": "./node_modules/babel-cli/bin/babel.js src -d lib --ignore test.js --minified --no-comments",
     "prepublish": "npm test && npm run build",
     "test": "BABEL_ENV=test jest",
     "test-debug": "BABEL_ENV=test node --inspect-brk node_modules/.bin/jest --runInBand"

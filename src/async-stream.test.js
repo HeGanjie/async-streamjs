@@ -58,6 +58,17 @@ test('map', async () => {
   expect(arrFromStream).toEqual(_.range(0, 5).map(v => v + ''))
 });
 
+test('chunk', async () => {
+  let loopCount = 0
+  let toStr = v => {
+    loopCount++;
+    return v + ''
+  }
+  let arrFromStream = await AsyncStream.range().map(toStr).chunk(3).take(3).toArray()
+  expect(arrFromStream).toEqual(_.chunk(_.range(0, 9).map(v => v + ''), 3))
+  expect(loopCount).toEqual(9)
+});
+
 test('filter', async () => {
   let arrFromStream = await AsyncStream.range().filter(v => v % 2 === 0).take(5).toArray()
   expect(arrFromStream).toEqual([0, 2, 4, 6, 8])
@@ -105,8 +116,13 @@ test('lazy', async () => {
     return Array.from({length: pageSize}, (v, i) => i + offset)
       .filter(v => v < totalCount)
   }
+  let done = false
   await AsyncStream.range()
-    .map(fakeQueryDB)
+    .map(async pageIdx => {
+      let arr = done ? [] : await fakeQueryDB(pageIdx)
+      done = arr.length < pageSize
+      return arr
+    })
     .takeWhile(arr => 0 < arr.length)
     .flatMap(_.identity)
     .forEach(v => seq.push(`value ${v}`))
@@ -127,7 +143,6 @@ test('lazy', async () => {
     "query page 2",
     "value 10",
     "value 11",
-    "query page 3"
   ])
 });
 

@@ -16,9 +16,13 @@ async function fakeQueryDB(pageIdx) {
     return Array.from({length: pageSize}, (v, i) => i + offset)
         .filter(v => v < totalCount)
 }
-
+let done = false
 AsyncStream.range()
-    .map(fakeQueryDB)
+    .map(async pageIdx => {
+      let arr = done ? [] : await fakeQueryDB(pageIdx)
+      done = arr.length < pageSize
+      return arr
+    })
     .takeWhile(arr => 0 < arr.length)
     .flatMap(x => x)
     .forEach(v => console.log(`value ${v}`))
@@ -40,7 +44,6 @@ value 9
 query page 2
 value 10
 value 11
-query page 3
 ```
 
 ### API
@@ -59,6 +62,7 @@ query page 3
  * `dropWhile(asyncPredicate): AsyncStream`
  * `filter(asyncPredicate): AsyncStream`
  * `map(asyncMapper): AsyncStream`
+ * `chunk(size = 1): AsyncStream`
  * `concat(anotherAsyncStream): AsyncStream`
  * `flatMap(asyncMapper): AsyncStream`
 

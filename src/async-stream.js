@@ -76,14 +76,21 @@ export default class AsyncStream {
     return EOS === await this._first()
   }
 
-  take(n) {
+  _take(n, restCallback) {
     if (n <= 0) {
+      if (restCallback) {
+        restCallback(this)
+      }
       return EMPTY_STREAM
     }
     return new AsyncStream(() => this._first(), async () => {
       let r = await this.rest()
-      return r.take(n - 1)
+      return r._take(n - 1, restCallback)
     })
+  }
+
+  take(n) {
+    return this._take(n)
   }
 
   takeWhile(asyncPredicate) {
@@ -151,6 +158,11 @@ export default class AsyncStream {
       let r = await this.rest()
       return r.map(asyncMapper)
     })
+  }
+
+  chunk(size = 1) {
+    let rest = null
+    return new AsyncStream(() => this._take(size, r => rest = r).toArray(), () => rest.chunk(size))
   }
 
   concat(s2) {
