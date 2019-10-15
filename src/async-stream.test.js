@@ -172,3 +172,23 @@ test('empty stream equality', async () => {
   let isEqual = _.isEqual(EMPTY_STREAM, await AsyncStream.range().take(1).rest())
   expect(isEqual).toBe(true)
 });
+
+test('fifo queue', async () => {
+  let targetArr = await AsyncStream.fromAsyncCallback(resolve => {
+    let srcArr0 = _.range(0, 5)
+    let srcArr1 = _.range(5, 10)
+    for (let i of srcArr0) {
+      resolve(i)
+    }
+    setTimeout(() => {
+      for (let i of srcArr1) {
+        resolve(i)
+      }
+      resolve(null)
+    }, 500)
+    setTimeout(() => {
+      resolve(null)
+    }, 1000)
+  }).toArray()
+  expect(targetArr).toEqual(_.range(0, 10))
+});

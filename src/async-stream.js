@@ -228,6 +228,24 @@ export default class AsyncStream {
     return AsyncStream.fromIterator(iterator)
   }
 
+  static fromAsyncCallback(bufferedExecutor) {
+    let buffer = [], notifyHasData = null
+    bufferedExecutor(val => {
+      buffer.push(val)
+      if (notifyHasData) {
+        notifyHasData()
+        notifyHasData = null
+      }
+    })
+    return AsyncStream.range().map(async i => {
+      if (buffer.length === 0) {
+        await new Promise(resolve => notifyHasData = resolve)
+      }
+      let v = buffer.shift()
+      return v === null || v === undefined || v === EOS ? EOS : v
+    })
+  }
+
   async reduce(asyncReducer, init = undefined) {
     if (init === undefined) {
       let res = await this._first()
