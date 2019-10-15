@@ -100,11 +100,11 @@ value 9
  * `concat(anotherAsyncStream): AsyncStream`
  * `flatMap(asyncMapper): AsyncStream`
 
-asyncCallback: `async val => void`  
-asyncPredicate: `async val => boolean`  
-asyncMapper: `async val => any`  
-asyncReducer: `async (accumulate, val) => nextAccumulate`  
-bufferedExecutor: `resolveOnce => void`, resolveOnce can call multiple times  
+asyncCallback: `async val => void`    
+asyncPredicate: `async val => boolean`    
+asyncMapper: `async val => any`    
+asyncReducer: `async (accumulate, val) => nextAccumulate`    
+bufferedExecutor: `resolveOnce => void`, resolveOnce can call multiple times, `resolveOnce(null)` means end of data    
 
 empty stream constant: `import {EMPTY_STREAM} from 'async-stream'`
 
