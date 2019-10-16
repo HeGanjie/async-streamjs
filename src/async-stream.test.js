@@ -3,24 +3,46 @@ import _ from 'lodash'
 
 // AsyncStream.range().map(query).flatMap(x => x).forEach(v => console.log(v))
 
-test.skip('flatMap san', async () => {
-  const totalCount = 35
+test('async iterate', async () => {
+  const totalCount = 12, batchSize = 5, seq = []
+  let done = false
+
   async function fakeQueryDB(batchIdx) {
-    const batchSize = 10
     let offset = batchIdx * batchSize
+    seq.push(`query page ${batchIdx}`)
     return Array.from({length: batchSize}, (v, i) => i + offset).filter(v => v < totalCount)
   }
 
-  function delayPromised(ms) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms)
+  let s = AsyncStream.range()
+    .map(async pageIdx => {
+      let arr = done ? [] : await fakeQueryDB(pageIdx)
+      done = arr.length < batchSize
+      return arr
     })
+    .takeWhile(arr => 0 < arr.length)
+    .flatMap(x => x)
+
+  for await (const x of s) {
+    seq.push(`value ${x}`)
   }
 
-  for await (const x of AsyncStream.range().take(10).flatMap(fakeQueryDB)) {
-    console.log(x);
-    await delayPromised(25)
-  }
+  expect(seq).toEqual([
+    "query page 0",
+    "value 0",
+    "value 1",
+    "value 2",
+    "value 3",
+    "value 4",
+    "query page 1",
+    "value 5",
+    "value 6",
+    "value 7",
+    "value 8",
+    "value 9",
+    "query page 2",
+    "value 10",
+    "value 11",
+  ])
 });
 
 test('range', async () => {
@@ -95,17 +117,27 @@ test('fromIterable', async () => {
 });
 
 test('flatMap', async () => {
-  const totalCount = 35
+  const totalCount = 35, batchSize = 10
+  let queryCount = 0, done = false
   async function fakeQueryDB(batchIdx) {
-    const batchSize = 10
     let offset = batchIdx * batchSize
+    queryCount++
     return Array.from({length: batchSize}, (v, i) => i + offset).filter(v => v < totalCount)
   }
-  let arrFromStream = await AsyncStream.range().take(10).flatMap(fakeQueryDB).toArray()
+  let arrFromStream = await AsyncStream.range()
+    .map(async pageIdx => {
+      let arr = done ? [] : await fakeQueryDB(pageIdx)
+      done = arr.length < batchSize
+      return arr
+    })
+    .takeWhile(arr => 0 < arr.length)
+    .flatMap(x => x)
+    .toArray()
   expect(arrFromStream).toEqual(_.range(0, totalCount))
+  expect(queryCount).toEqual(4)
 });
 
-test('lazy', async () => {
+test('lazy load', async () => {
   let seq = []
 
   const totalCount = 12
