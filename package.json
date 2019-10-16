@@ -1,6 +1,6 @@
 {
   "name": "async-streamjs",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "async version of streamjs(https://github.com/winterbe/streamjs)",
   "main": "lib/async-stream.js",
   "scripts": {

@@ -105,10 +105,14 @@ export default class AsyncStream {
     if (n <= 0) {
       return this
     }
-    if (n === 1) {
-      return this.restLazy()
-    }
-    return this.restLazy().drop(n - 1)
+    let cached = this
+    return new AsyncStream(async () => {
+      let dropped = 0
+      while (dropped++ < n) {
+        cached = await cached.rest()
+      }
+      return await cached._first()
+    }, () => cached.rest())
   }
 
   dropWhile(asyncPredicate) {

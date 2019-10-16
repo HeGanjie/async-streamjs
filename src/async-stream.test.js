@@ -192,3 +192,8 @@ test('fifo queue', async () => {
   }).toArray()
   expect(targetArr).toEqual(_.range(0, 10))
 });
+
+test('drop many', async () => {
+  let arrFromStream = await AsyncStream.range().drop(800).take(1).toArray()
+  expect(arrFromStream).toEqual([800])
+});

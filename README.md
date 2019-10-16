@@ -82,7 +82,7 @@ value 9
 ### API
  * `static range(start = 0, end = null): AsyncStream`
  * `static fromIterable(iterable): AsyncStream`
- * `fromAsyncCallback(bufferedExecutor): AsyncStream`
+ * `static fromAsyncCallback(bufferedExecutor): AsyncStream`
  * `async first(): any`
  * `async rest(): AsyncStream`
  * `async isEmpty(): bool`
